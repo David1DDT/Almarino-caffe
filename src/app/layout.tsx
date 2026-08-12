@@ -31,10 +31,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} h-full antialiased scroll-smooth`}
     >
-      <body className="min-h-full flex flex-col">{children}{/* impeccable-live-start */}
-        <script src="http://localhost:8402/live.js?token=19a17284-e93c-4c23-a4d8-0025ff598b42"></script>
-        {/* impeccable-live-end */}
-      </body>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }
