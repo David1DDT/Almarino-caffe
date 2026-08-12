@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Warm Brown & Golden Amber Palette for Almarino Caffè */
+  --color-sage: #b86b32;
+  --color-sage-light: #cd7b3c;
+  --color-champagne: #d49b4b;
+  --color-champagne-light: #e5ac5d;
+  --color-emerald-dark: #1a0f0a;
+  --color-eucalyptus-dark: #25160d;
+  --color-frost-alabaster: #fdfbf7;
+  --color-berry: #b84232;
+  --color-mint-soft: #f7ebd9;
+
+  /* Color system aliases */
+  --color-coffee-cream: #fdfbf7;
+  --color-coffee-latte: #f5ece0;
+  --color-coffee-warm: #e8dcc4;
+  --color-coffee-gold: #d49b4b;
+  --color-coffee-roast: #b86b32;
+  --color-coffee-espresso: #1a0f0a;
+  --color-caramel: #cd7b3c;
+}
+
+:root {
+  --background: #fdfbf7;
+  --foreground: #1a0f0a;
+}
+
+.dark {
+  --background: #1a0f0a;
+  --foreground: #fdfbf7;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui;
+  overflow-x: clip;
+  transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Hide scrollbars cleanly */
+::-webkit-scrollbar {
+  display: none;
+}
+html, body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom keyframe floating animations */
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-25px) rotate(15deg);
+  }
+}
+
+@keyframes float-medium {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(-10deg);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 9s ease-in-out infinite;
+}
+
+.animate-float-medium {
+  animation: float-medium 7s ease-in-out infinite;
+}
