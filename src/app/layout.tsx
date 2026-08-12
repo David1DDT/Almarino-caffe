@@ -18,8 +18,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Brew & Bean | Premium Artisan Coffee",
-  description: "Experience the art of coffee with our handcrafted blends, sourced directly from fair-trade farms and roasted to perfection.",
+  title: "Almarino Caffe",
 };
 
 export default function RootLayout({
@@ -33,9 +32,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full flex flex-col">{children}{/* impeccable-live-start */}
-<script src="http://localhost:8401/live.js?token=c0cd5096-94f2-47a2-b8cf-63c9d4b519fc"></script>
-{/* impeccable-live-end */}
-</body>
+        <script src="http://localhost:8402/live.js?token=19a17284-e93c-4c23-a4d8-0025ff598b42"></script>
+        {/* impeccable-live-end */}
+      </body>
     </html>
   );
 }
