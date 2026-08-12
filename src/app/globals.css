@@ -25,8 +25,8 @@
 }
 
 :root {
-  --background: #fdfbf7;
-  --foreground: #1a0f0a;
+  --background: #1a0f0a;
+  --foreground: #fdfbf7;
 }
 
 .dark {
@@ -36,6 +36,8 @@
 
 html {
   scroll-behavior: smooth;
+  background-color: #1a0f0a;
+  color-scheme: dark;
 }
 
 body {
@@ -51,25 +53,33 @@ body {
 ::-webkit-scrollbar {
   display: none;
 }
-html, body {
+
+html,
+body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
 /* Custom keyframe floating animations */
 @keyframes float-slow {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0) rotate(0deg);
   }
+
   50% {
     transform: translateY(-25px) rotate(15deg);
   }
 }
 
 @keyframes float-medium {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0) rotate(0deg);
   }
+
   50% {
     transform: translateY(-15px) rotate(-10deg);
   }

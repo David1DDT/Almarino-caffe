@@ -7,13 +7,13 @@ import Image from "next/image";
 import { useState, useEffect, useMemo, useRef } from "react";
 
 // Accessible ScrollReveal component that respects prefers-reduced-motion
-function ScrollReveal({ 
-  children, 
-  className = "", 
-  delay = 0 
-}: { 
-  children: React.ReactNode; 
-  className?: string; 
+function ScrollReveal({
+  children,
+  className = "",
+  delay = 0
+}: {
+  children: React.ReactNode;
+  className?: string;
   delay?: number;
 }) {
   const [isVisible, setIsVisible] = useState(false);
@@ -48,9 +48,8 @@ function ScrollReveal({
   return (
     <div
       ref={ref}
-      className={`transition-all duration-1000 ease-out transform ${
-        isVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-8 scale-[0.98]"
-      } ${className}`}
+      className={`transition-all duration-1000 ease-out transform ${isVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-8 scale-[0.98]"
+        } ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}
@@ -59,7 +58,6 @@ function ScrollReveal({
 }
 
 export default function Home() {
-  const [darkMode, setDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const [selectedRoast, setSelectedRoast] = useState<"light" | "medium" | "dark">("medium");
 
@@ -74,7 +72,7 @@ export default function Home() {
   const [customGrind, setCustomGrind] = useState("whole");
   const [customSize, setCustomSize] = useState("250");
   const [customOrderSuccess, setCustomOrderSuccess] = useState(false);
-  
+
   // Menu Item Selections
   const [itemSelections, setItemSelections] = useState<Record<number, string>>({
     1: "250g",
@@ -86,19 +84,11 @@ export default function Home() {
   });
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const isSystemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setDarkMode(isSystemDark);
+    if (typeof document !== "undefined") {
+      document.documentElement.classList.add("dark");
+      document.documentElement.style.colorScheme = "dark";
     }
   }, []);
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
 
   const menuItems = useMemo(() => [
     {
@@ -250,10 +240,10 @@ export default function Home() {
       customGrind === "whole"
         ? "Boabe Întregi"
         : customGrind === "espresso"
-        ? "Măcinare Espresso"
-        : customGrind === "drip"
-        ? "Măcinare Filtru / V60"
-        : "Măcinare Presă Franceză";
+          ? "Măcinare Espresso"
+          : customGrind === "drip"
+            ? "Măcinare Filtru / V60"
+            : "Măcinare Presă Franceză";
 
     const customCartId = `custom-${Date.now()}`;
 
@@ -285,7 +275,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-frost-alabaster dark:bg-emerald-dark text-emerald-dark dark:text-frost-alabaster selection:bg-champagne selection:text-emerald-dark transition-colors duration-500">
-      
+
       {/* Slide-Over Cart Drawer */}
       <CartDrawer
         isOpen={isCartOpen}
@@ -333,25 +323,7 @@ export default function Home() {
             <Link href="#location" className="hover:text-sage dark:hover:text-champagne transition-colors">Locație</Link>
           </nav>
 
-          <div className="flex items-center gap-4">
-            {/* Dark Mode Toggle */}
-            <button
-              type="button"
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-2.5 rounded-full bg-sage/10 dark:bg-champagne/10 text-sage dark:text-champagne hover:bg-sage/20 dark:hover:bg-champagne/20 transition-all cursor-pointer"
-              aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {darkMode ? (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-              )}
-            </button>
-          </div>
+          <div className="flex items-center gap-4" />
         </div>
       </header>
 
@@ -453,7 +425,7 @@ export default function Home() {
                   </div>
                   <div className="flex-1">
                     <span className="text-[10px] text-emerald-dark/60 dark:text-frost-alabaster/60 uppercase tracking-widest font-extrabold block">Adresă Oficială</span>
-                    <a 
+                    <a
                       href="https://www.google.com/maps/place//data=!4m2!3m1!1s0x474ea7d1de5e4ae7:0xc5b5cb3aee156c34"
                       target="_blank"
                       rel="noopener noreferrer"
