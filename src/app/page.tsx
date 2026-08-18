@@ -5,6 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { getSupabaseImageUrl } from "@/lib/supabase";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useLanguage } from "@/context/LanguageContext";
 
 // Accessible ScrollReveal component that respects prefers-reduced-motion
 function ScrollReveal({
@@ -58,6 +60,7 @@ function ScrollReveal({
 }
 
 export default function Home() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("all");
   const [selectedRoast, setSelectedRoast] = useState<"light" | "medium" | "dark">("medium");
 
@@ -236,13 +239,15 @@ export default function Home() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-8 font-mono text-xs font-bold uppercase tracking-wider text-emerald-dark/80 dark:text-frost-alabaster/80">
-            <Link href="/menu" className="text-sage dark:text-champagne font-extrabold hover:underline">Meniu Complet</Link>
-            <Link href="#cinema" className="hover:text-sage dark:hover:text-champagne transition-colors">Almarino 3D Stage</Link>
-            <Link href="#reviews" className="hover:text-sage dark:hover:text-champagne transition-colors">Recenzii 5.0</Link>
-            <Link href="#location" className="hover:text-sage dark:hover:text-champagne transition-colors">Locație</Link>
+            <Link href="/menu" className="text-sage dark:text-champagne font-extrabold hover:underline">{t("nav.menu")}</Link>
+            <Link href="#cinema" className="hover:text-sage dark:hover:text-champagne transition-colors">{t("nav.cinema")}</Link>
+            <Link href="#reviews" className="hover:text-sage dark:hover:text-champagne transition-colors">{t("nav.reviews")}</Link>
+            <Link href="#location" className="hover:text-sage dark:hover:text-champagne transition-colors">{t("nav.location")}</Link>
           </nav>
 
-          <div className="flex items-center gap-4" />
+          <div className="flex items-center gap-4">
+            <LanguageToggle />
+          </div>
         </div>
       </header>
 
@@ -260,13 +265,13 @@ export default function Home() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <ScrollReveal>
                 <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-champagne font-mono text-xs font-black uppercase tracking-widest mb-3">
-                  <span>5.0 ★ Overall Rating</span>
+                  <span>{t("home.reviews_badge")}</span>
                 </div>
                 <h2 className="text-4xl md:text-5xl font-serif font-black mb-4">
-                  Ce Spun Oaspeții <span className="italic font-light text-sage dark:text-champagne">Almarino Caffè</span>
+                  {t("home.reviews_title")} <span className="italic font-light text-sage dark:text-champagne">{t("home.reviews_title_italic")}</span>
                 </h2>
                 <p className="text-sm md:text-base text-emerald-dark/80 dark:text-frost-alabaster/80 font-medium">
-                  Peste 455 de recenzii verificate pe Google și Tripadvisor din partea iubitorilor de cafea artizanală.
+                  {t("home.reviews_sub")}
                 </p>
               </ScrollReveal>
             </div>
@@ -277,22 +282,22 @@ export default function Home() {
                   name: "Liana Aruncutean",
                   stars: "★★★★★ 5/5",
                   source: "Google Review",
-                  time: "acum o lună",
-                  text: "The owner of this coffee shop is one of the most passionate people we’ve ever met. The atmosphere is amazing, perfect for both couples and friends!",
+                  time: "1 month ago",
+                  text: t("home.review1"),
                 },
                 {
                   name: "Gabriela Cristina Hale",
                   stars: "★★★★★ 5/5",
                   source: "Google Review",
-                  time: "acum o lună",
-                  text: "În sfârșit am ajuns unde am văzut doar pe facebook. Îmi doream de foarte mult timp... Zâmbetul cu care m-a întâmpinat Alexandru mi-a amintit de o lume foarte caldă!",
+                  time: "1 month ago",
+                  text: t("home.review2"),
                 },
                 {
                   name: "Teodor T",
                   stars: "★★★★★ 5/5",
                   source: "Google Review",
-                  time: "acum o lună",
-                  text: "O experiență care nu dezamăgește niciodată. Personalul este extrem de amabil, atent și mereu dispus să ajute, lucru care face diferența încă din momentul în care pășești în cafenea.",
+                  time: "1 month ago",
+                  text: t("home.review3"),
                 },
               ].map((rev, idx) => (
                 <ScrollReveal key={idx} delay={idx * 120} className="h-full">
@@ -324,13 +329,13 @@ export default function Home() {
               <ScrollReveal>
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sage/10 dark:bg-champagne/15 border border-sage/30 dark:border-champagne/30 font-mono text-xs font-bold text-sage dark:text-champagne uppercase tracking-wider mb-3">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>Deschis Acum • Alba Iulia</span>
+                  <span>{t("home.location_badge")}</span>
                 </div>
                 <h2 className="text-4xl md:text-5xl font-serif font-black leading-tight">
-                  Te Așteptăm la <span className="italic font-light text-sage dark:text-champagne">Almarino Caffè</span>
+                  {t("home.location_title")}
                 </h2>
                 <p className="text-sm md:text-base text-emerald-dark/80 dark:text-frost-alabaster/80 font-medium leading-relaxed">
-                  Situată pe Bulevardul 1 Decembrie 1918 M4 în Alba Iulia, cafeneaua noastră vă întâmpină cu pasiunea barista Alexandru, băuturi espresso de origine și o atmosferă unică.
+                  {t("home.location_sub")}
                 </p>
               </ScrollReveal>
 
@@ -363,7 +368,7 @@ export default function Home() {
                       </svg>
                     </div>
                     <div>
-                      <span className="text-[9px] text-emerald-dark/60 dark:text-frost-alabaster/60 uppercase tracking-widest font-extrabold block">Telefon & Rezervări</span>
+                      <span className="text-[9px] text-emerald-dark/60 dark:text-frost-alabaster/60 uppercase tracking-widest font-extrabold block">{t("home.phone_label")}</span>
                       <a href="tel:0732445005" className="font-mono font-bold text-xs text-sage dark:text-champagne hover:underline transition-colors block mt-0.5">
                         0732 445 005
                       </a>
@@ -377,9 +382,9 @@ export default function Home() {
                       </svg>
                     </div>
                     <div>
-                      <span className="text-[9px] text-emerald-dark/60 dark:text-frost-alabaster/60 uppercase tracking-widest font-extrabold block">Program Zilnic</span>
+                      <span className="text-[9px] text-emerald-dark/60 dark:text-frost-alabaster/60 uppercase tracking-widest font-extrabold block">{t("home.hours_title")}</span>
                       <span className="font-mono font-bold text-xs text-emerald-dark dark:text-frost-alabaster block mt-0.5">
-                        07:30 – 21:30
+                        {t("home.hours_time")}
                       </span>
                     </div>
                   </div>
@@ -412,7 +417,7 @@ export default function Home() {
                       rel="noopener noreferrer"
                       className="px-5 py-2.5 bg-[#d49b4b] text-[#1a0f0a] font-mono text-xs font-black uppercase tracking-wider rounded-xl shadow-xl hover:scale-105 active:scale-95 transition-all"
                     >
-                      Deschide Harta Google
+                      Google Maps
                     </a>
                   </div>
                 </div>
@@ -427,28 +432,26 @@ export default function Home() {
         <div className="max-w-7xl mx-auto relative z-10 grid md:grid-cols-4 gap-8">
           <div className="md:col-span-2">
             <h3 className="text-2xl font-serif font-black tracking-widest text-[#d49b4b] mb-4">
-              ALMARINO CAFFÈ
+              {t("footer.title")}
             </h3>
             <p className="text-xs text-frost-alabaster/75 max-w-sm leading-relaxed mb-6 font-sans font-medium">
-              Cafenea artizanală cu un rating de 5.0 ★ în Alba Iulia. Selecții de cafea de origine proaspăt prăjită și servire caldă.
+              {t("footer.desc")}
             </p>
           </div>
           <div>
-            <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-[#d49b4b] mb-4">Navigare Rapidă</h4>
+            <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-[#d49b4b] mb-4">{t("footer.nav")}</h4>
             <div className="flex flex-col gap-2.5 text-xs text-frost-alabaster/80 font-sans font-semibold">
-              <Link href="#cinema" className="hover:text-[#d49b4b] transition-colors">Cinema Stage</Link>
-              <Link href="#menu" className="hover:text-[#d49b4b] transition-colors">Meniu Cafenea</Link>
-              <Link href="#customizer" className="hover:text-[#d49b4b] transition-colors">Brew Lab Customizer</Link>
-              <Link href="#reviews" className="hover:text-[#d49b4b] transition-colors">Recenzii 5.0★</Link>
-              <Link href="#location" className="hover:text-[#d49b4b] transition-colors">Locație Alba Iulia</Link>
+              <Link href="#cinema" className="hover:text-[#d49b4b] transition-colors">{t("footer.link_cinema")}</Link>
+              <Link href="/menu" className="hover:text-[#d49b4b] transition-colors">{t("footer.link_menu")}</Link>
+              <Link href="#reviews" className="hover:text-[#d49b4b] transition-colors">{t("footer.link_reviews")}</Link>
+              <Link href="#location" className="hover:text-[#d49b4b] transition-colors">{t("footer.link_location")}</Link>
             </div>
           </div>
           <div>
-            <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-[#d49b4b] mb-4">Contact Direct</h4>
+            <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-[#d49b4b] mb-4">Contact</h4>
             <div className="flex flex-col gap-2.5 text-xs text-frost-alabaster/80 font-sans font-semibold">
-              <p>Adresă: Bulevardul 1 Decembrie 1918 M4, Alba Iulia</p>
+              <p>Bulevardul 1 Decembrie 1918 M4, Alba Iulia</p>
               <p>Telefon: <a href="tel:0732445005" className="hover:text-[#d49b4b]">0732 445 005</a></p>
-              <p>Program: Deschis zilnic • Închide la 21:30</p>
             </div>
           </div>
         </div>

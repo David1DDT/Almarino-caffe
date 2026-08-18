@@ -28,8 +28,10 @@ export const s3Client = new S3Client({
 export interface SupabaseProduct {
   id?: number | string;
   name: string;
+  name_en?: string;
   category: "espresso" | "specialty" | "cold" | "beans" | "tea";
   desc: string;
+  desc_en?: string;
   basePrice: number;
   image: string;
   created_at?: string;

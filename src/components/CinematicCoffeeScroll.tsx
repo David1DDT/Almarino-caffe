@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import CoffeeScene from "./CoffeeScene";
 import { supabase, getSupabaseImageUrl } from "@/lib/supabase";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface SightCard {
   id: string;
@@ -94,6 +96,7 @@ const COFFEE_SIGHTS: SightCard[] = [
 ];
 
 export default function CinematicCoffeeScroll() {
+  const { lang, t } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
 
@@ -126,25 +129,35 @@ export default function CinematicCoffeeScroll() {
             const category = String(item.category || "espresso");
             const categoryKicker =
               category === "espresso"
-                ? "Espresso Bar • Premium"
+                ? t("cinema.kicker_espresso")
                 : category === "specialty"
-                ? "Băutură Specială • Recomandat"
-                : category === "cold"
-                ? "Cold Brew & Infuzii • Răcoritor"
-                : category === "beans"
-                ? "Pachet Sigilat • Origine Pură"
-                : "Selecție Gourmet";
+                  ? t("cinema.kicker_specialty")
+                  : category === "cold"
+                    ? t("cinema.kicker_cold")
+                    : category === "beans"
+                      ? t("cinema.kicker_beans")
+                      : t("cinema.kicker_tea");
+
+            const currencyStr = t("menu.currency");
+
+            const nameRo = String(item.name || item.name_ro || `Produs #${idx + 1}`);
+            const nameEn = String(item.name_en || nameRo);
+            const descRo = String(item.desc || item.desc_ro || item.description || "Almarino Caffè.");
+            const descEn = String(item.desc_en || descRo);
+
+            const title = lang === "en" ? nameEn : nameRo;
+            const desc = lang === "en" ? descEn : descRo;
 
             return {
               id: `db-${item.id || idx}`,
               kicker: categoryKicker,
-              title: String(item.name || `Produs #${idx + 1}`),
-              desc: String(item.desc || item.description || "Note bogate și aromă inconfundabilă Almarino Caffè."),
-              origin: `Origine: Almarino Caffè • ${category.toUpperCase()}`,
-              score: `${price.toFixed(2)} lei`,
-              tags: [category.toUpperCase(), "Artizanal", "Proaspăt"],
+              title,
+              desc,
+              origin: `${t("cinema.origin_prefix")} • ${category.toUpperCase()}`,
+              score: `${price.toFixed(2)} ${currencyStr}`,
+              tags: [category.toUpperCase(), lang === "ro" ? "Artizanal" : "Artisanal", lang === "ro" ? "Proaspăt" : "Fresh"],
               sizes: category === "beans" ? ["250g", "500g", "1kg"] : ["12 oz", "16 oz", "20 oz"],
-              type: category === "beans" ? "Pachet sigilat proaspăt" : "Băutură preparată pe loc",
+              type: category === "beans" ? t("cinema.fresh_beans") : t("cinema.fresh_beverage"),
               image: getSupabaseImageUrl(String(item.image || item.image_url || "")),
             };
           });
@@ -156,7 +169,7 @@ export default function CinematicCoffeeScroll() {
       }
     }
     loadTop10FromDb();
-  }, []);
+  }, [lang]);
 
   const infiniteSights = useMemo(() => {
     return [
@@ -381,7 +394,7 @@ export default function CinematicCoffeeScroll() {
     <div ref={scrollRef} className="relative h-[calc(100vh+3700px)] w-full">
       {/* 3700px Sticky Stage Container */}
       <div className="sticky top-0 h-screen min-h-[620px] overflow-hidden bg-[#1a0f0a] isolation-isolate">
-        
+
         {/* Background Ambient Glow Layer - Rich Warm Brown */}
         <div className="absolute inset-0 z-0 opacity-85 pointer-events-none">
           <div className="absolute top-10 left-1/4 w-96 h-96 bg-[#d49b4b]/20 rounded-full blur-3xl animate-pulse"></div>
@@ -413,7 +426,7 @@ export default function CinematicCoffeeScroll() {
             <div className="mt-4 flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#25160d]/80 border border-[#d49b4b]/40 backdrop-blur-md shadow-lg">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span className="font-mono text-xs sm:text-sm uppercase tracking-widest text-[#d49b4b] font-extrabold">
-                Cafenea Artizanală & Espresso Bar • Alba Iulia
+                {t("cinema.hero_tag")}
               </span>
             </div>
           </div>
@@ -428,7 +441,7 @@ export default function CinematicCoffeeScroll() {
         >
           <div className="w-36 h-36 sm:w-48 sm:h-48 rounded-full bg-[#25160d]/95 border border-[#d49b4b]/40 backdrop-blur-xl p-4 animate-float-slow shadow-2xl pointer-events-auto">
             <span className="font-mono text-[8px] sm:text-[9px] uppercase tracking-widest text-[#d49b4b] block">5.0 ★ Google Rating</span>
-            <span className="font-serif text-sm sm:text-lg font-bold text-[#fdfbf7] block mt-1">455+ Recenzii</span>
+            <span className="font-serif text-sm sm:text-lg font-bold text-[#fdfbf7] block mt-1">{t("cinema.hero_reviews")}</span>
           </div>
         </div>
 
@@ -438,10 +451,7 @@ export default function CinematicCoffeeScroll() {
             transform: "translate3d(var(--split-right-x, -50%), var(--split-right-y, 0px), 0) scale(var(--split-right-scale, 1))",
           }}
         >
-          <div className="w-40 h-40 sm:w-52 sm:h-52 rounded-full bg-[#25160d]/95 border border-[#b86b32]/40 backdrop-blur-xl p-4 sm:p-6 animate-float-medium shadow-2xl pointer-events-auto">
-            <span className="font-mono text-[8px] sm:text-[9px] uppercase tracking-widest text-[#cd7b3c] block">Pasiune & Calitate</span>
-            <span className="font-serif text-base sm:text-xl font-bold text-[#d49b4b] block mt-1">Barista Alexandru</span>
-          </div>
+
         </div>
 
         {/* Story Panel 2: Direct Trade & Origins (Frame 2: 560 - 1620px) - Comes from the RIGHT */}
@@ -453,10 +463,10 @@ export default function CinematicCoffeeScroll() {
           }}
         >
           <h2 className="text-3xl sm:text-5xl md:text-6xl font-serif font-black text-[#d49b4b] mb-3 sm:mb-4 drop-shadow-md leading-tight text-center">
-            Pasiune. Cafea de Origine.
+            {t("cinema.panel2_title")}
           </h2>
           <p className="text-xs sm:text-sm md:text-base text-[#fdfbf7]/90 max-w-lg mx-auto font-medium leading-relaxed text-center">
-            Prăjire artizanală proaspătă și atmosferă caldă creată de o echipă dedicată pasionată de espresso.
+            {t("cinema.panel2_desc")}
           </p>
           <div className="grid grid-cols-2 gap-4 sm:gap-8 max-w-md mx-auto mt-6 sm:mt-8 font-mono text-center">
             <div className="p-3 sm:p-4 rounded-2xl bg-[#25160d]/90 border border-[#b86b32]/40 backdrop-blur-md shadow-lg">
@@ -465,7 +475,7 @@ export default function CinematicCoffeeScroll() {
             </div>
             <div className="p-3 sm:p-4 rounded-2xl bg-[#25160d]/90 border border-[#b86b32]/40 backdrop-blur-md shadow-lg">
               <span className="text-3xl sm:text-4xl font-serif font-black text-[#d49b4b] block">455+</span>
-              <span className="text-[10px] sm:text-xs text-[#fdfbf7]/90 font-bold uppercase tracking-wider mt-1 block">Recenzii Clienti</span>
+              <span className="text-[10px] sm:text-xs text-[#fdfbf7]/90 font-bold uppercase tracking-wider mt-1 block">{t("cinema.panel2_stat_reviews")}</span>
             </div>
           </div>
         </div>
@@ -479,27 +489,12 @@ export default function CinematicCoffeeScroll() {
           }}
         >
           <h2 className="text-3xl sm:text-5xl md:text-6xl font-serif font-black text-[#d49b4b] mb-3 sm:mb-4 drop-shadow-md leading-tight text-center">
-            Prăjitorie & Meniu Espresso.
+            {t("cinema.stage_title")}
           </h2>
           <p className="text-xs sm:text-sm md:text-base text-[#fdfbf7]/90 max-w-lg mx-auto font-medium mb-5 sm:mb-6 leading-relaxed text-center">
-            Selecții speciale espresso, Kyoto cold drip 14 ore și personalizarea pachetelor de cafea.
+            {t("cinema.stage_subtitle")}
           </p>
-          <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
-            {(["light", "medium", "dark"] as const).map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setSelectedRoast(r)}
-                className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-full font-mono text-[10px] sm:text-xs font-bold uppercase tracking-wider border pointer-events-auto transition-all cursor-pointer hover:scale-105 active:scale-95 ${
-                  selectedRoast === r
-                    ? "bg-[#d49b4b] text-[#1a0f0a] font-black border-transparent shadow-xl ring-2 ring-[#d49b4b]/60"
-                    : "bg-[#b86b32]/25 border-[#b86b32]/40 text-[#fdfbf7] hover:bg-[#b86b32]/40 backdrop-blur-md"
-                }`}
-              >
-                {r} Roast
-              </button>
-            ))}
-          </div>
+
         </div>
 
         {/* Micro-Lot Carousel Layer (Frame 4: 2760 - 3560px) */}
@@ -524,15 +519,14 @@ export default function CinematicCoffeeScroll() {
                 <div
                   key={card.uniqueId}
                   onClick={() => handleCardClick(card)}
-                  className={`relative flex-none w-[clamp(300px,85vw,380px)] sm:w-[clamp(340px,26vw,380px)] p-4 sm:p-5 rounded-3xl border transition-all duration-300 pointer-events-auto cursor-pointer select-none backdrop-blur-xl flex flex-col justify-between overflow-hidden ${
-                    isActive
-                      ? "bg-gradient-to-b from-[#2e1a10] to-[#1e100a] text-[#fdfbf7] border-[#d49b4b] ring-2 ring-[#d49b4b]/50 shadow-[0_10px_40px_rgba(212,155,75,0.25)] scale-[1.03]"
-                      : "bg-[#25160d]/80 text-[#fdfbf7]/80 border-[#b86b32]/30 hover:border-[#d49b4b]/60 opacity-80 hover:opacity-100 scale-100"
-                  }`}
+                  className={`relative flex-none w-[clamp(300px,85vw,380px)] sm:w-[clamp(340px,26vw,380px)] p-4 sm:p-5 rounded-3xl border transition-all duration-300 pointer-events-auto cursor-pointer select-none backdrop-blur-xl flex flex-col justify-between overflow-hidden ${isActive
+                    ? "bg-gradient-to-b from-[#2e1a10] to-[#1e100a] text-[#fdfbf7] border-[#d49b4b] ring-2 ring-[#d49b4b]/50 shadow-[0_10px_40px_rgba(212,155,75,0.25)] scale-[1.03]"
+                    : "bg-[#25160d]/80 text-[#fdfbf7]/80 border-[#b86b32]/30 hover:border-[#d49b4b]/60 opacity-80 hover:opacity-100 scale-100"
+                    }`}
                 >
                   <div>
                     {/* Product Photo Thumbnail */}
-                    <div className="relative w-full h-32 rounded-2xl overflow-hidden mb-3 border border-[#d49b4b]/20">
+                    <div className="relative w-full h-36 rounded-2xl overflow-hidden mb-3 border border-[#d49b4b]/20">
                       <Image
                         src={card.image}
                         alt={card.title}
@@ -540,51 +534,22 @@ export default function CinematicCoffeeScroll() {
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded font-mono text-[8px] font-black uppercase tracking-wider bg-[#1a0f0a]/90 text-[#d49b4b] border border-[#d49b4b]/40 shadow-xs">
-                        {card.kicker}
-                      </span>
                     </div>
 
-                    <div className="flex justify-between items-baseline mb-1">
+                    {/* Title & Price */}
+                    <div className="flex justify-between items-baseline mb-2 gap-2">
                       <h3 className={`text-base sm:text-lg font-serif font-black ${isActive ? "text-[#fdfbf7]" : "text-[#fdfbf7]/90"}`}>
                         {card.title}
                       </h3>
-                      <span className={`font-serif font-black text-sm sm:text-base ${isActive ? "text-[#d49b4b]" : "text-[#d49b4b]/80"}`}>
+                      <span className={`font-serif font-black text-sm sm:text-base shrink-0 ${isActive ? "text-[#d49b4b]" : "text-[#d49b4b]/80"}`}>
                         {card.score}
                       </span>
                     </div>
 
-                    <p className={`font-mono text-[9px] font-bold uppercase tracking-wider mb-2.5 ${isActive ? "text-[#cd7b3c]" : "text-[#d49b4b]/70"}`}>
-                      {card.origin}
-                    </p>
-
-                    {/* Flavor Notes Tags */}
-                    <div className="flex flex-wrap gap-1 mb-2.5">
-                      {card.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className={`text-[8px] font-mono font-bold px-2 py-0.5 rounded-full border ${
-                            isActive
-                              ? "bg-[#d49b4b]/20 border-[#d49b4b]/50 text-[#e5ac5d]"
-                              : "bg-[#d49b4b]/10 border-[#d49b4b]/20 text-[#d49b4b]/80"
-                          }`}
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    <p className={`text-xs font-medium line-clamp-2 leading-relaxed mb-3 ${isActive ? "text-[#fdfbf7]/90" : "text-[#fdfbf7]/70"}`}>
+                    {/* Description */}
+                    <p className={`text-xs font-medium line-clamp-3 leading-relaxed ${isActive ? "text-[#fdfbf7]/90" : "text-[#fdfbf7]/70"}`}>
                       {card.desc}
                     </p>
-                  </div>
-
-                  {/* Card Footer: Portion Sizes & Type */}
-                  <div className={`pt-2.5 border-t flex justify-between items-center font-mono text-[9px] font-extrabold ${isActive ? "border-[#d49b4b]/30 text-[#fdfbf7]/80" : "border-[#fdfbf7]/15 text-[#fdfbf7]/60"}`}>
-                    <span>{card.type}</span>
-                    <span className={`px-2 py-0.5 rounded ${isActive ? "bg-[#d49b4b] text-[#1a0f0a] font-black" : "bg-[#d49b4b]/20 text-[#d49b4b]"}`}>
-                      {card.sizes.join(" • ")}
-                    </span>
                   </div>
                 </div>
               );
@@ -592,17 +557,16 @@ export default function CinematicCoffeeScroll() {
           </div>
         </div>
 
-        {/* Carousel Controls (3360 - 3660px) */}
+        {/* Carousel Controls: Arrows on Left Side */}
         <div
-          className={`absolute left-6 sm:left-12 bottom-8 sm:bottom-12 z-20 flex gap-3 sm:gap-4 transition-all ${
-            isReady ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
-          }`}
+          className={`absolute left-6 sm:left-12 bottom-8 sm:bottom-12 z-20 flex gap-3 sm:gap-4 transition-all ${isReady ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+            }`}
           style={{ opacity: "var(--sights-controls-opacity, 0)" }}
         >
           <button
             type="button"
             onClick={() => setActiveSight((prev) => prev - 1)}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#d49b4b] text-[#1a0f0a] font-black flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-transform cursor-pointer pointer-events-auto ring-2 ring-[#d49b4b]/40"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#d49b4b] text-[#1a0f0a] font-black flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-transform cursor-pointer pointer-events-auto ring-2 ring-[#d49b4b]/40 shrink-0"
             aria-label="Selection anterioara"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -612,13 +576,30 @@ export default function CinematicCoffeeScroll() {
           <button
             type="button"
             onClick={() => setActiveSight((prev) => prev + 1)}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#d49b4b] text-[#1a0f0a] font-black flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-transform cursor-pointer pointer-events-auto ring-2 ring-[#d49b4b]/40"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#d49b4b] text-[#1a0f0a] font-black flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-transform cursor-pointer pointer-events-auto ring-2 ring-[#d49b4b]/40 shrink-0"
             aria-label="Selection urmatoare"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
           </button>
+        </div>
+
+        {/* Center Button: Meniu complet in the Middle of Screen */}
+        <div
+          className={`absolute left-1/2 -translate-x-1/2 bottom-8 sm:bottom-12 z-20 flex items-center justify-center transition-all ${isReady ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+            }`}
+          style={{ opacity: "var(--sights-controls-opacity, 0)" }}
+        >
+          <Link
+            href="/menu"
+            className="h-10 sm:h-12 px-5 sm:px-7 rounded-full bg-[#d49b4b] text-[#1a0f0a] font-serif font-black text-xs sm:text-sm tracking-wider flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-transform cursor-pointer pointer-events-auto ring-2 ring-[#d49b4b]/40 gap-2 shrink-0 uppercase"
+          >
+            <span>{t("cinema.complete_menu")}</span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </Link>
         </div>
 
       </div>

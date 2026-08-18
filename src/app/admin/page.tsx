@@ -4,54 +4,67 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { supabase, SupabaseProduct, uploadImageToSupabase, uploadLocalImageToStorage, getSupabaseImageUrl } from "@/lib/supabase";
+import LanguageToggle from "@/components/LanguageToggle";
 
 const INITIAL_PRODUCTS: SupabaseProduct[] = [
   // Espresso Bar
   {
     id: 101,
     name: "Espresso Artizanal",
+    name_en: "Artisanal Espresso",
     category: "espresso",
     desc: "Extracție precisă cu corp plin, cremă densă de alună și note dulci de ciocolată neagră.",
+    desc_en: "Precise extraction with full body, dense hazelnut crema, and sweet dark chocolate notes.",
     basePrice: 10,
     image: "/images/soho_artisan_cafe.jpg",
   },
   {
     id: 102,
     name: "Espresso Macchiato",
+    name_en: "Espresso Macchiato",
     category: "espresso",
     desc: "Espresso scurt încununat cu o pată fină de spumă cremoasă de lapte proaspăt.",
+    desc_en: "Single shot espresso topped with a smooth dash of creamy fresh milk foam.",
     basePrice: 12,
     image: "/images/soho_artisan_cafe.jpg",
   },
   {
     id: 103,
     name: "Cappuccino Artizanal",
+    name_en: "Artisanal Cappuccino",
     category: "espresso",
     desc: "Espresso echilibrat cu lapte mătăsos texturat la micro-spumă catifelată.",
+    desc_en: "Balanced espresso with silky milk textured to velvety micro-foam.",
     basePrice: 16,
     image: "/images/soho_artisan_cafe.jpg",
   },
   {
     id: 104,
     name: "Flat White Dual-Origin",
+    name_en: "Dual-Origin Flat White",
     category: "espresso",
     desc: "Doza dublă de espresso ristretto cu strat subțire de lapte cremos fierbinte.",
+    desc_en: "Double shot ristretto espresso with a thin layer of hot creamy milk.",
     basePrice: 18,
     image: "/images/soho_artisan_cafe.jpg",
   },
   {
     id: 105,
     name: "Caffè Latte Velvet",
+    name_en: "Velvet Caffè Latte",
     category: "espresso",
     desc: "Espresso fin combinat generos cu lapte cald texturat mătăsos.",
+    desc_en: "Smooth espresso generously blended with silky textured warm milk.",
     basePrice: 17,
     image: "/images/vanilla_latte.jpg",
   },
   {
     id: 106,
-    name: "Americano Pure Roast",
+    name: "Americano Pure",
+    name_en: "Pure Americano",
     category: "espresso",
     desc: "Espresso dublu diluat delicat cu apă fierbinte purificată.",
+    desc_en: "Double espresso delicately diluted with purified hot water.",
     basePrice: 12,
     image: "/images/soho_artisan_cafe.jpg",
   },
@@ -211,8 +224,10 @@ export default function AdminPage() {
   // Form State
   const [formData, setFormData] = useState<Omit<SupabaseProduct, "id">>({
     name: "",
+    name_en: "",
     category: "espresso",
     desc: "",
+    desc_en: "",
     basePrice: 15,
     image: "/images/soho_artisan_cafe.jpg",
   });
@@ -309,9 +324,11 @@ export default function AdminPage() {
         setIsSupabaseConnected(true);
         const normalized = data.map((item: Record<string, unknown>) => ({
           id: item.id as number | string,
-          name: String(item.name || ""),
+          name: String(item.name || item.name_ro || ""),
+          name_en: String(item.name_en || item.name || ""),
           category: (item.category || "espresso") as SupabaseProduct["category"],
-          desc: String(item.desc || item.description || ""),
+          desc: String(item.desc || item.desc_ro || item.description || ""),
+          desc_en: String(item.desc_en || item.desc || item.description || ""),
           basePrice: Number(item.basePrice ?? item.base_price ?? item.price ?? 15),
           image: getSupabaseImageUrl(String(item.image || item.image_url || "")),
         }));
@@ -625,6 +642,8 @@ export default function AdminPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <LanguageToggle />
+
             <button
               type="button"
               onClick={handleSeedDatabase}
@@ -766,7 +785,12 @@ export default function AdminPage() {
                       </td>
 
                       <td className="p-4 font-serif font-bold text-sm text-[#fdfbf7] group-hover:text-[#d49b4b] transition-colors">
-                        {p.name}
+                        <div>{p.name}</div>
+                        {p.name_en && (
+                          <div className="text-[11px] font-sans font-normal text-[#d49b4b]/80 italic mt-0.5">
+                            EN: {p.name_en}
+                          </div>
+                        )}
                       </td>
 
                       <td className="p-4 font-mono text-[10px]">
@@ -775,8 +799,13 @@ export default function AdminPage() {
                         </span>
                       </td>
 
-                      <td className="p-4 text-[#fdfbf7]/70 max-w-md truncate">
-                        {p.desc}
+                      <td className="p-4 text-[#fdfbf7]/70 max-w-md">
+                        <div className="truncate">{p.desc}</div>
+                        {p.desc_en && (
+                          <div className="text-[10px] text-[#fdfbf7]/50 truncate italic mt-0.5">
+                            EN: {p.desc_en}
+                          </div>
+                        )}
                       </td>
 
                       <td className="p-4 text-right font-serif font-black text-sm text-[#d49b4b]">
@@ -831,18 +860,33 @@ export default function AdminPage() {
             </div>
 
             <form onSubmit={editingProduct ? handleSaveEdit : handleSaveAdd} className="space-y-4 font-mono text-xs">
-              <div>
-                <label className="block text-[10px] font-extrabold uppercase text-[#cd7b3c] mb-1">
-                  Nume Produs:
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="ex: Ethiopian Yirgacheffe Special"
-                  className="w-full bg-[#1a0f0a] border border-[#b86b32]/40 rounded-xl px-3.5 py-2.5 text-[#fdfbf7] focus:outline-none focus:border-[#d49b4b]"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-extrabold uppercase text-[#cd7b3c] mb-1">
+                    🇷🇴 Nume Produs (Română):
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="ex: Espresso Artizanal"
+                    className="w-full bg-[#1a0f0a] border border-[#b86b32]/40 rounded-xl px-3.5 py-2.5 text-[#fdfbf7] focus:outline-none focus:border-[#d49b4b]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-extrabold uppercase text-[#cd7b3c] mb-1">
+                    🇬🇧 Product Name (English):
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name_en || ""}
+                    onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
+                    placeholder="ex: Artisanal Espresso"
+                    className="w-full bg-[#1a0f0a] border border-[#b86b32]/40 rounded-xl px-3.5 py-2.5 text-[#fdfbf7] focus:outline-none focus:border-[#d49b4b]"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -925,18 +969,33 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[10px] font-extrabold uppercase text-[#cd7b3c] mb-1">
-                  Descriere:
-                </label>
-                <textarea
-                  rows={3}
-                  required
-                  value={formData.desc}
-                  onChange={(e) => setFormData({ ...formData, desc: e.target.value })}
-                  placeholder="Descrie notele de aromă și originea..."
-                  className="w-full bg-[#1a0f0a] border border-[#b86b32]/40 rounded-xl px-3.5 py-2.5 text-[#fdfbf7] focus:outline-none focus:border-[#d49b4b]"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-extrabold uppercase text-[#cd7b3c] mb-1">
+                    🇷🇴 Descriere (Română):
+                  </label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={formData.desc}
+                    onChange={(e) => setFormData({ ...formData, desc: e.target.value })}
+                    placeholder="Descrie notele de aromă în română..."
+                    className="w-full bg-[#1a0f0a] border border-[#b86b32]/40 rounded-xl px-3.5 py-2.5 text-[#fdfbf7] focus:outline-none focus:border-[#d49b4b]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-extrabold uppercase text-[#cd7b3c] mb-1">
+                    🇬🇧 Description (English):
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.desc_en || ""}
+                    onChange={(e) => setFormData({ ...formData, desc_en: e.target.value })}
+                    placeholder="Describe flavor notes in English..."
+                    className="w-full bg-[#1a0f0a] border border-[#b86b32]/40 rounded-xl px-3.5 py-2.5 text-[#fdfbf7] focus:outline-none focus:border-[#d49b4b]"
+                  />
+                </div>
               </div>
 
               <div className="pt-3 flex justify-end gap-3 border-t border-[#b86b32]/20">
