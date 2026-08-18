@@ -113,11 +113,10 @@ function Steam({ position }: SteamProps) {
 
 // 2. Realistic floating coffee beans that react directly to scroll speed & position
 interface CoffeeBeansProps {
-  roast: "light" | "medium" | "dark";
   isMobile: boolean;
 }
 
-function CoffeeBeans({ roast, isMobile }: CoffeeBeansProps) {
+function CoffeeBeans({ isMobile }: CoffeeBeansProps) {
   const beansRef = useRef<THREE.Group>(null);
   const prevScrollY = useRef(0);
   const scrollVelocity = useRef(0);
@@ -161,30 +160,14 @@ function CoffeeBeans({ roast, isMobile }: CoffeeBeansProps) {
   }, []);
 
   const beanMaterial = useMemo(() => {
-    let color = "#5c3d2e";
-    let roughness = 0.35;
-    let metalness = 0.05;
-    let clearcoat = 0.0;
-
-    if (roast === "light") {
-      color = "#8f5c38";
-      roughness = 0.55;
-      metalness = 0.02;
-    } else if (roast === "dark") {
-      color = "#1a0e08";
-      roughness = 0.15;
-      metalness = 0.15;
-      clearcoat = 0.4;
-    }
-
     return new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(color),
-      roughness,
-      metalness,
-      clearcoat,
+      color: new THREE.Color("#5c3d2e"),
+      roughness: 0.35,
+      metalness: 0.05,
+      clearcoat: 0.0,
       clearcoatRoughness: 0.1,
     });
-  }, [roast]);
+  }, []);
 
   useFrame((state) => {
     const currentScrollY = typeof window !== "undefined" ? window.scrollY : 0;
@@ -449,7 +432,7 @@ export default function CoffeeScene({ roast = "medium" }: CoffeeSceneProps) {
 
         <Suspense fallback={null}>
           <Model mousePositionRef={mousePositionRef} roast={roast} isMobile={isMobile} />
-          <CoffeeBeans roast={roast} isMobile={isMobile} />
+          <CoffeeBeans isMobile={isMobile} />
           <Environment preset="sunset" />
         </Suspense>
 

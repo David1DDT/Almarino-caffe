@@ -1,10 +1,10 @@
 "use client";
 
 import CinematicCoffeeScroll from "@/components/CinematicCoffeeScroll";
-import CartDrawer, { CartItem } from "@/components/CartDrawer";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useMemo, useRef } from "react";
+import { getSupabaseImageUrl } from "@/lib/supabase";
 
 // Accessible ScrollReveal component that respects prefers-reduced-motion
 function ScrollReveal({
@@ -61,12 +61,6 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedRoast, setSelectedRoast] = useState<"light" | "medium" | "dark">("medium");
 
-  // Cart & Order Fulfillment State
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [orderMode, setOrderMode] = useState<"pickup" | "table" | "delivery">("table");
-  const [tableNumber, setTableNumber] = useState("Masa 4");
-
   // Customizer State
   const [customName, setCustomName] = useState("Almarino Special Blend");
   const [customGrind, setCustomGrind] = useState("whole");
@@ -103,7 +97,7 @@ export default function Home() {
       badge: "Single Origin",
       notes: ["Iasomie", "Bergamotă", "Miere Sălbatică"],
       options: ["250g", "500g", "1kg"],
-      image: "/images/ethiopian_yirgacheffe.jpg",
+      image: getSupabaseImageUrl("/images/ethiopian_yirgacheffe.jpg"),
     },
     {
       id: 2,
@@ -117,7 +111,7 @@ export default function Home() {
       badge: "Popular",
       notes: ["Caramel", "Nuci Prăjite", "Cacao"],
       options: ["250g", "500g", "1kg"],
-      image: "/images/ethiopian_yirgacheffe.jpg",
+      image: getSupabaseImageUrl("/images/ethiopian_yirgacheffe.jpg"),
     },
     {
       id: 3,
@@ -131,7 +125,7 @@ export default function Home() {
       badge: "Organic",
       notes: ["Ciocolată Neagră", "Nucșoară", "Zahăr Brun"],
       options: ["250g", "500g", "1kg"],
-      image: "/images/ethiopian_yirgacheffe.jpg",
+      image: getSupabaseImageUrl("/images/ethiopian_yirgacheffe.jpg"),
     },
     {
       id: 4,
@@ -145,7 +139,7 @@ export default function Home() {
       badge: "Ediție Limitată",
       notes: ["Stejar", "Cireșe", "Cacao Pură"],
       options: ["12 oz", "16 oz", "20 oz"],
-      image: "/images/cold_brew_nitro.jpg",
+      image: getSupabaseImageUrl("/images/cold_brew_nitro.jpg"),
     },
     {
       id: 5,
@@ -159,7 +153,7 @@ export default function Home() {
       badge: "Recomandarea Alexandru",
       notes: ["Păstăi Vanilie", "Double Espresso", "Cremă Lapte"],
       options: ["12 oz", "16 oz", "20 oz"],
-      image: "/images/vanilla_latte.jpg",
+      image: getSupabaseImageUrl("/images/vanilla_latte.jpg"),
     },
     {
       id: 6,
@@ -173,7 +167,7 @@ export default function Home() {
       badge: "Răcoritor",
       notes: ["Ciocolată", "Spumă Azot", "Dozator Cold Brew"],
       options: ["12 oz", "16 oz", "20 oz"],
-      image: "/images/cold_brew_nitro.jpg",
+      image: getSupabaseImageUrl("/images/cold_brew_nitro.jpg"),
     },
   ], []);
 
@@ -207,61 +201,10 @@ export default function Home() {
     setItemSelections((prev) => ({ ...prev, [itemId]: option }));
   };
 
-  const handleAddItemToCart = (item: typeof menuItems[0]) => {
-    const selectedOpt = itemSelections[item.id] || item.options[0];
-    const unitPrice = calculateItemPrice(item, selectedOpt);
-    const cartItemId = `${item.id}-${selectedOpt}`;
-
-    setCartItems((prev) => {
-      const existing = prev.find((i) => i.id === cartItemId);
-      if (existing) {
-        return prev.map((i) => (i.id === cartItemId ? { ...i, quantity: i.quantity + 1 } : i));
-      }
-      return [
-        ...prev,
-        {
-          id: cartItemId,
-          name: item.name,
-          price: unitPrice,
-          quantity: 1,
-          type: item.itemKind,
-          details: `${selectedOpt} • ${item.origin}`,
-        },
-      ];
-    });
-
-    setIsCartOpen(true);
-  };
-
   const handleCustomOrderSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const basePrice = customSize === "250" ? 28 : customSize === "500" ? 48 : 88;
-    const grindLabel =
-      customGrind === "whole"
-        ? "Boabe Întregi"
-        : customGrind === "espresso"
-          ? "Măcinare Espresso"
-          : customGrind === "drip"
-            ? "Măcinare Filtru / V60"
-            : "Măcinare Presă Franceză";
-
-    const customCartId = `custom-${Date.now()}`;
-
-    setCartItems((prev) => [
-      ...prev,
-      {
-        id: customCartId,
-        name: `Almarino Custom: "${customName}"`,
-        price: basePrice,
-        quantity: 1,
-        type: "beans",
-        details: `${customSize}g • Prăjire ${selectedRoast.toUpperCase()} • ${grindLabel}`,
-      },
-    ]);
-
     setCustomOrderSuccess(true);
     setTimeout(() => setCustomOrderSuccess(false), 4500);
-    setIsCartOpen(true);
   };
 
   const filteredItems = useMemo(() => {
@@ -269,32 +212,8 @@ export default function Home() {
     return menuItems.filter((i) => i.category === activeTab);
   }, [activeTab, menuItems]);
 
-  const totalCartCount = useMemo(() => {
-    return cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  }, [cartItems]);
-
   return (
     <div className="min-h-screen bg-frost-alabaster dark:bg-emerald-dark text-emerald-dark dark:text-frost-alabaster selection:bg-champagne selection:text-emerald-dark transition-colors duration-500">
-
-      {/* Slide-Over Cart Drawer */}
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        onUpdateQuantity={(id, delta) => {
-          setCartItems((prev) =>
-            prev
-              .map((i) => (i.id === id ? { ...i, quantity: i.quantity + delta } : i))
-              .filter((i) => i.quantity > 0)
-          );
-        }}
-        onRemoveItem={(id) => setCartItems((prev) => prev.filter((i) => i.id !== id))}
-        onClearCart={() => setCartItems([])}
-        orderMode={orderMode}
-        setOrderMode={setOrderMode}
-        tableNumber={tableNumber}
-        setTableNumber={setTableNumber}
-      />
 
       {/* 1. Header & Floating Navigation Bar */}
       <header className="fixed top-0 inset-x-0 z-40 bg-frost-alabaster/90 dark:bg-emerald-dark/90 backdrop-blur-xl border-b border-sage/15 dark:border-champagne/20 transition-all duration-300">
@@ -317,8 +236,8 @@ export default function Home() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-8 font-mono text-xs font-bold uppercase tracking-wider text-emerald-dark/80 dark:text-frost-alabaster/80">
+            <Link href="/menu" className="text-sage dark:text-champagne font-extrabold hover:underline">Meniu Complet</Link>
             <Link href="#cinema" className="hover:text-sage dark:hover:text-champagne transition-colors">Almarino 3D Stage</Link>
-            <Link href="#story" className="hover:text-sage dark:hover:text-champagne transition-colors">Despre Noi</Link>
             <Link href="#reviews" className="hover:text-sage dark:hover:text-champagne transition-colors">Recenzii 5.0</Link>
             <Link href="#location" className="hover:text-sage dark:hover:text-champagne transition-colors">Locație</Link>
           </nav>
@@ -472,9 +391,10 @@ export default function Home() {
               <ScrollReveal delay={200}>
                 <div className="relative aspect-4/3 rounded-3xl overflow-hidden border border-sage/30 dark:border-champagne/30 shadow-2xl group">
                   <Image
-                    src="/images/soho_artisan_cafe.jpg"
+                    src={getSupabaseImageUrl("/images/soho_artisan_cafe.jpg")}
                     alt="Almarino Caffè Interior Alba Iulia"
                     fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent"></div>

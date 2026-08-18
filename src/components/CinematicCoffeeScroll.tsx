@@ -97,7 +97,7 @@ export default function CinematicCoffeeScroll() {
   const trackRef = useRef<HTMLDivElement>(null);
 
   const [selectedRoast, setSelectedRoast] = useState<"light" | "medium" | "dark">("medium");
-  const [activeSight, setActiveSight] = useState(COFFEE_SIGHTS.length); // start in middle set
+  const [activeSight, setActiveSight] = useState(COFFEE_SIGHTS.length * 2); // start in middle set (index 12)
   const [isReady, setIsReady] = useState(false);
 
   // Animation Engine State
@@ -109,7 +109,13 @@ export default function CinematicCoffeeScroll() {
   const initializedRef = useRef(false);
 
   const infiniteSights = useMemo(() => {
-    return [...COFFEE_SIGHTS, ...COFFEE_SIGHTS, ...COFFEE_SIGHTS].map((item, idx) => ({
+    return [
+      ...COFFEE_SIGHTS,
+      ...COFFEE_SIGHTS,
+      ...COFFEE_SIGHTS,
+      ...COFFEE_SIGHTS,
+      ...COFFEE_SIGHTS,
+    ].map((item, idx) => ({
       ...item,
       uniqueId: `${item.id}-${idx}`,
       idx,
@@ -267,8 +273,8 @@ export default function CinematicCoffeeScroll() {
     };
   }, [requestTick]);
 
-  // Update carousel position
-  useEffect(() => {
+  // Update carousel position on activeSight or resize
+  const updateTrackPosition = useCallback(() => {
     if (!trackRef.current) return;
     const card = trackRef.current.children[0] as HTMLElement;
     if (!card) return;
@@ -278,22 +284,44 @@ export default function CinematicCoffeeScroll() {
     trackRef.current.style.transform = `translate3d(calc(${shift}px - 18vw), 0, 0)`;
   }, [activeSight]);
 
-  const handleTransitionEnd = () => {
+  useEffect(() => {
+    updateTrackPosition();
+    window.addEventListener("resize", updateTrackPosition);
+    return () => window.removeEventListener("resize", updateTrackPosition);
+  }, [updateTrackPosition]);
+
+  const handleCardClick = (card: typeof infiniteSights[0]) => {
+    const N = COFFEE_SIGHTS.length;
+    const baseIdx = card.idx % N;
+    // Find candidate index closest to current activeSight to ensure short, smooth animation
+    const candidates = [baseIdx, baseIdx + N, baseIdx + N * 2, baseIdx + N * 3, baseIdx + N * 4];
+    let closest = candidates[0];
+    let minDiff = Math.abs(candidates[0] - activeSight);
+    for (let i = 1; i < candidates.length; i++) {
+      const diff = Math.abs(candidates[i] - activeSight);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = candidates[i];
+      }
+    }
+    setActiveSight(closest);
+  };
+
+  const handleTransitionEnd = (e?: React.TransitionEvent<HTMLDivElement>) => {
+    if (e && (e.target !== e.currentTarget || e.propertyName !== "transform")) return;
     const origCount = COFFEE_SIGHTS.length;
-    if (activeSight >= origCount * 2) {
+    const minBound = origCount * 2; // 12
+    const maxBound = origCount * 3; // 18
+
+    if (activeSight >= maxBound || activeSight < minBound) {
+      const normalized = (activeSight % origCount) + origCount * 2;
       if (trackRef.current) trackRef.current.style.transition = "none";
-      setActiveSight(activeSight - origCount);
+      setActiveSight(normalized);
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          if (trackRef.current) trackRef.current.style.transition = "transform 640ms cubic-bezier(0.22, 1, 0.36, 1)";
-        });
-      });
-    } else if (activeSight < origCount) {
-      if (trackRef.current) trackRef.current.style.transition = "none";
-      setActiveSight(activeSight + origCount);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (trackRef.current) trackRef.current.style.transition = "transform 640ms cubic-bezier(0.22, 1, 0.36, 1)";
+          if (trackRef.current) {
+            trackRef.current.style.transition = "transform 640ms cubic-bezier(0.22, 1, 0.36, 1)";
+          }
         });
       });
     }
@@ -311,7 +339,12 @@ export default function CinematicCoffeeScroll() {
         </div>
 
         {/* 3D WebGL Canvas Layer */}
-        <div className="absolute inset-0 z-1 pointer-events-none">
+        <div
+          className="absolute inset-0 z-1 pointer-events-none transition-[filter]"
+          style={{
+            filter: "blur(var(--blur-px, 0px)) brightness(var(--back-brightness, 1))",
+          }}
+        >
           <CoffeeScene roast={selectedRoast} />
         </div>
 
@@ -432,7 +465,7 @@ export default function CinematicCoffeeScroll() {
         >
           <div
             ref={trackRef}
-            className="flex gap-4 md:gap-6 items-stretch transition-transform duration-640 cubic-bezier(0.22, 1, 0.36, 1)"
+            className="flex gap-4 md:gap-6 items-stretch transition-transform duration-[640ms] cubic-bezier(0.22, 1, 0.36, 1)"
             onTransitionEnd={handleTransitionEnd}
           >
             {infiniteSights.map((card) => {
@@ -440,11 +473,11 @@ export default function CinematicCoffeeScroll() {
               return (
                 <div
                   key={card.uniqueId}
-                  onClick={() => setActiveSight(card.idx)}
-                  className={`relative flex-none w-[clamp(300px,85vw,380px)] sm:w-[clamp(340px,26vw,380px)] p-4 sm:p-5 rounded-3xl border transition-all pointer-events-auto cursor-pointer select-none backdrop-blur-xl flex flex-col justify-between overflow-hidden ${
+                  onClick={() => handleCardClick(card)}
+                  className={`relative flex-none w-[clamp(300px,85vw,380px)] sm:w-[clamp(340px,26vw,380px)] p-4 sm:p-5 rounded-3xl border transition-all duration-300 pointer-events-auto cursor-pointer select-none backdrop-blur-xl flex flex-col justify-between overflow-hidden ${
                     isActive
-                      ? "bg-[#fdfbf7] text-[#1a0f0a] border-[#d49b4b] shadow-2xl scale-[1.02]"
-                      : "bg-[#25160d]/95 text-[#fdfbf7] border-[#b86b32]/40 hover:border-[#d49b4b]/80 opacity-90 hover:opacity-100"
+                      ? "bg-gradient-to-b from-[#2e1a10] to-[#1e100a] text-[#fdfbf7] border-[#d49b4b] ring-2 ring-[#d49b4b]/50 shadow-[0_10px_40px_rgba(212,155,75,0.25)] scale-[1.03]"
+                      : "bg-[#25160d]/80 text-[#fdfbf7]/80 border-[#b86b32]/30 hover:border-[#d49b4b]/60 opacity-80 hover:opacity-100 scale-100"
                   }`}
                 >
                   <div>
@@ -457,21 +490,21 @@ export default function CinematicCoffeeScroll() {
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded font-mono text-[8px] font-black uppercase tracking-wider bg-[#1a0f0a]/90 text-[#d49b4b] border border-[#d49b4b]/40">
+                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded font-mono text-[8px] font-black uppercase tracking-wider bg-[#1a0f0a]/90 text-[#d49b4b] border border-[#d49b4b]/40 shadow-xs">
                         {card.kicker}
                       </span>
                     </div>
 
                     <div className="flex justify-between items-baseline mb-1">
-                      <h3 className={`text-base sm:text-lg font-serif font-black ${isActive ? "text-[#1a0f0a]" : "text-[#fdfbf7]"}`}>
+                      <h3 className={`text-base sm:text-lg font-serif font-black ${isActive ? "text-[#fdfbf7]" : "text-[#fdfbf7]/90"}`}>
                         {card.title}
                       </h3>
-                      <span className={`font-serif font-black text-sm sm:text-base ${isActive ? "text-[#b86b32]" : "text-[#d49b4b]"}`}>
+                      <span className={`font-serif font-black text-sm sm:text-base ${isActive ? "text-[#d49b4b]" : "text-[#d49b4b]/80"}`}>
                         {card.score}
                       </span>
                     </div>
 
-                    <p className={`font-mono text-[9px] font-bold uppercase tracking-wider mb-2.5 ${isActive ? "text-[#b86b32]" : "text-[#d49b4b]"}`}>
+                    <p className={`font-mono text-[9px] font-bold uppercase tracking-wider mb-2.5 ${isActive ? "text-[#cd7b3c]" : "text-[#d49b4b]/70"}`}>
                       {card.origin}
                     </p>
 
@@ -482,8 +515,8 @@ export default function CinematicCoffeeScroll() {
                           key={tag}
                           className={`text-[8px] font-mono font-bold px-2 py-0.5 rounded-full border ${
                             isActive
-                              ? "bg-[#b86b32]/10 border-[#b86b32]/30 text-[#b86b32]"
-                              : "bg-[#d49b4b]/15 border-[#d49b4b]/30 text-[#d49b4b]"
+                              ? "bg-[#d49b4b]/20 border-[#d49b4b]/50 text-[#e5ac5d]"
+                              : "bg-[#d49b4b]/10 border-[#d49b4b]/20 text-[#d49b4b]/80"
                           }`}
                         >
                           {tag}
@@ -491,15 +524,15 @@ export default function CinematicCoffeeScroll() {
                       ))}
                     </div>
 
-                    <p className={`text-xs font-medium line-clamp-2 leading-relaxed mb-3 ${isActive ? "text-[#1a0f0a]/85" : "text-[#fdfbf7]/85"}`}>
+                    <p className={`text-xs font-medium line-clamp-2 leading-relaxed mb-3 ${isActive ? "text-[#fdfbf7]/90" : "text-[#fdfbf7]/70"}`}>
                       {card.desc}
                     </p>
                   </div>
 
                   {/* Card Footer: Portion Sizes & Type */}
-                  <div className={`pt-2.5 border-t flex justify-between items-center font-mono text-[9px] font-extrabold ${isActive ? "border-[#1a0f0a]/15 text-[#1a0f0a]/70" : "border-[#fdfbf7]/15 text-[#fdfbf7]/70"}`}>
+                  <div className={`pt-2.5 border-t flex justify-between items-center font-mono text-[9px] font-extrabold ${isActive ? "border-[#d49b4b]/30 text-[#fdfbf7]/80" : "border-[#fdfbf7]/15 text-[#fdfbf7]/60"}`}>
                     <span>{card.type}</span>
-                    <span className={`px-2 py-0.5 rounded ${isActive ? "bg-[#b86b32]/10 text-[#b86b32]" : "bg-[#d49b4b]/20 text-[#d49b4b]"}`}>
+                    <span className={`px-2 py-0.5 rounded ${isActive ? "bg-[#d49b4b] text-[#1a0f0a] font-black" : "bg-[#d49b4b]/20 text-[#d49b4b]"}`}>
                       {card.sizes.join(" • ")}
                     </span>
                   </div>
