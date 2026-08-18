@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import Image from "next/image";
 import CoffeeScene from "./CoffeeScene";
+import { supabase, getSupabaseImageUrl } from "@/lib/supabase";
 
 interface SightCard {
   id: string;
@@ -28,7 +29,7 @@ const COFFEE_SIGHTS: SightCard[] = [
     tags: ["Iasomie", "Bergamotă", "Miere Sălbatică"],
     sizes: ["250g", "500g", "1kg"],
     type: "Pachet sigilat proaspăt",
-    image: "/images/ethiopian_yirgacheffe.jpg",
+    image: getSupabaseImageUrl("/images/ethiopian_yirgacheffe.jpg"),
   },
   {
     id: "colombia",
@@ -40,7 +41,7 @@ const COFFEE_SIGHTS: SightCard[] = [
     tags: ["Caramel", "Nuci Prăjite", "Cacao"],
     sizes: ["250g", "500g", "1kg"],
     type: "Pachet sigilat proaspăt",
-    image: "/images/soho_artisan_cafe.jpg",
+    image: getSupabaseImageUrl("/images/soho_artisan_cafe.jpg"),
   },
   {
     id: "guatemala",
@@ -52,7 +53,7 @@ const COFFEE_SIGHTS: SightCard[] = [
     tags: ["Ciocolată Neagră", "Nucșoară", "Zahăr Brun"],
     sizes: ["250g", "500g", "1kg"],
     type: "Pachet sigilat proaspăt",
-    image: "/images/ethiopian_yirgacheffe.jpg",
+    image: getSupabaseImageUrl("/images/ethiopian_yirgacheffe.jpg"),
   },
   {
     id: "kyoto-coldbrew",
@@ -64,7 +65,7 @@ const COFFEE_SIGHTS: SightCard[] = [
     tags: ["Stejar", "Cireșe", "Cacao Pură"],
     sizes: ["12 oz", "16 oz", "20 oz"],
     type: "Băutură preparată pe loc",
-    image: "/images/cold_brew_nitro.jpg",
+    image: getSupabaseImageUrl("/images/cold_brew_nitro.jpg"),
   },
   {
     id: "madagascar-latte",
@@ -76,7 +77,7 @@ const COFFEE_SIGHTS: SightCard[] = [
     tags: ["Păstăi Vanilie", "Double Espresso", "Cremă Lapte"],
     sizes: ["12 oz", "16 oz", "20 oz"],
     type: "Băutură preparată pe loc",
-    image: "/images/vanilla_latte.jpg",
+    image: getSupabaseImageUrl("/images/vanilla_latte.jpg"),
   },
   {
     id: "nitro-mocha",
@@ -88,7 +89,7 @@ const COFFEE_SIGHTS: SightCard[] = [
     tags: ["Ciocolată", "Spumă Azot", "Dozator Cold Brew"],
     sizes: ["12 oz", "16 oz", "20 oz"],
     type: "Băutură preparată pe loc",
-    image: "/images/cold_brew_nitro.jpg",
+    image: getSupabaseImageUrl("/images/cold_brew_nitro.jpg"),
   },
 ];
 
@@ -96,6 +97,7 @@ export default function CinematicCoffeeScroll() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
 
+  const [sights, setSights] = useState<SightCard[]>(COFFEE_SIGHTS);
   const [selectedRoast, setSelectedRoast] = useState<"light" | "medium" | "dark">("medium");
   const [activeSight, setActiveSight] = useState(COFFEE_SIGHTS.length * 2); // start in middle set (index 12)
   const [isReady, setIsReady] = useState(false);
@@ -108,19 +110,67 @@ export default function CinematicCoffeeScroll() {
   const rafPendingRef = useRef(false);
   const initializedRef = useRef(false);
 
+  // Fetch top 10 products from Supabase DB
+  useEffect(() => {
+    async function loadTop10FromDb() {
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .order("id", { ascending: true })
+          .limit(10);
+
+        if (!error && data && data.length > 0) {
+          const mapped: SightCard[] = data.map((item: Record<string, unknown>, idx: number) => {
+            const price = Number(item.basePrice ?? item.base_price ?? item.price ?? 15);
+            const category = String(item.category || "espresso");
+            const categoryKicker =
+              category === "espresso"
+                ? "Espresso Bar • Premium"
+                : category === "specialty"
+                ? "Băutură Specială • Recomandat"
+                : category === "cold"
+                ? "Cold Brew & Infuzii • Răcoritor"
+                : category === "beans"
+                ? "Pachet Sigilat • Origine Pură"
+                : "Selecție Gourmet";
+
+            return {
+              id: `db-${item.id || idx}`,
+              kicker: categoryKicker,
+              title: String(item.name || `Produs #${idx + 1}`),
+              desc: String(item.desc || item.description || "Note bogate și aromă inconfundabilă Almarino Caffè."),
+              origin: `Origine: Almarino Caffè • ${category.toUpperCase()}`,
+              score: `${price.toFixed(2)} lei`,
+              tags: [category.toUpperCase(), "Artizanal", "Proaspăt"],
+              sizes: category === "beans" ? ["250g", "500g", "1kg"] : ["12 oz", "16 oz", "20 oz"],
+              type: category === "beans" ? "Pachet sigilat proaspăt" : "Băutură preparată pe loc",
+              image: getSupabaseImageUrl(String(item.image || item.image_url || "")),
+            };
+          });
+          setSights(mapped);
+          setActiveSight(mapped.length * 2);
+        }
+      } catch (err) {
+        console.warn("Could not fetch top 10 products for cinema scroll:", err);
+      }
+    }
+    loadTop10FromDb();
+  }, []);
+
   const infiniteSights = useMemo(() => {
     return [
-      ...COFFEE_SIGHTS,
-      ...COFFEE_SIGHTS,
-      ...COFFEE_SIGHTS,
-      ...COFFEE_SIGHTS,
-      ...COFFEE_SIGHTS,
+      ...sights,
+      ...sights,
+      ...sights,
+      ...sights,
+      ...sights,
     ].map((item, idx) => ({
       ...item,
       uniqueId: `${item.id}-${idx}`,
       idx,
     }));
-  }, []);
+  }, [sights]);
 
   const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
   const smoothstep = (e0: number, e1: number, v: number) => {

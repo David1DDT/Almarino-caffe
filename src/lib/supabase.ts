@@ -36,17 +36,15 @@ export interface SupabaseProduct {
 }
 
 export function getSupabaseImageUrl(imagePath: string): string {
-  if (!imagePath) return "/images/soho_artisan_cafe.jpg";
+  if (!imagePath) return `${SUPABASE_STORAGE_URL}/products/soho_artisan_cafe.jpg`;
   if (imagePath.startsWith("http://") || imagePath.startsWith("https://") || imagePath.startsWith("data:")) {
     return imagePath;
   }
-  if (imagePath.startsWith("products/") || imagePath.startsWith("almarino/")) {
-    return `${SUPABASE_STORAGE_URL}/${imagePath}`;
+  const cleanPath = imagePath.replace(/^\/images\//, "").replace(/^\//, "");
+  if (cleanPath.startsWith("products/")) {
+    return `${SUPABASE_STORAGE_URL}/${cleanPath}`;
   }
-  if (imagePath.startsWith("/images/") || imagePath.startsWith("/")) {
-    return imagePath;
-  }
-  return `/images/${imagePath}`;
+  return `${SUPABASE_STORAGE_URL}/products/${cleanPath}`;
 }
 
 export async function uploadImageToSupabase(file: File): Promise<string> {
